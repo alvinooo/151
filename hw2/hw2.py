@@ -57,7 +57,6 @@ def error_rate(train, data, k):
 
 train = zip(train_data, train_labels)
 
-print error_rate(train, zip(train_data, train_labels), 3)
 for k in [1, 5, 9, 15]:
     print "k = ", k
     print "training error", error_rate(train, zip(train_data, train_labels), k)
@@ -71,7 +70,6 @@ test_projection = np.dot(np.array(test_data), np.array(project_matrix))
 
 train = zip(train_projection, train_labels)
 
-print error_rate(train, zip(train_projection, train_labels), 3)
 for k in [1, 5, 9, 15]:
     print "k = ", k
     print "training error", error_rate(train, zip(train_projection, train_labels), k)
