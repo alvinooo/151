@@ -3,7 +3,7 @@ import numpy as np
 from collections import deque
 
 class Node:
-    def __init__(feature, threshold, majority_label=None, label=None):
+    def __init__(feature=None, threshold=None, majority_label=None, label=None):
         self.feature = feature
         self.threshold = threshold
         self.majority_label = majority_label
@@ -94,5 +94,14 @@ def build_tree(data, labels):
     # TODO output node
     # TODO recurse on left and right datasets
     # return node
+
+    if labels.isPure():
+    	return Node (None, None, None, labels[0])
+
+    left = build_tree(left_data, left_labels)
+    right = build_tree(right_data, right_labels)
+    return Node(feature, threshold, labels.getMajority(), None)
+
+
 
 build_tree(train_data, train_labels)
