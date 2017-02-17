@@ -1,15 +1,6 @@
 import sys
 import numpy as np
-from collections import deque
-
-class Node:
-    def __init__(feature=None, threshold=None, majority_label=None, label=None):
-        self.feature = feature
-        self.threshold = threshold
-        self.majority_label = majority_label
-        self.label = label
-        self.left = None
-        self.right = None
+from collections import deque, Counter
 
 train_data = []
 train_labels = []
@@ -35,13 +26,23 @@ with open("hw3test.txt", "r") as test_file:
         test_data.append(np.array(vector[:-1]))
         test_labels.append(int(vector[-1]))
 
-def compute_entropy(distributions):
-    total = float(sum([size[0] for size in distributions]))
-    entropy = 0
-    for size, distribution in distributions:
-        if size > 0:
-            entropy -= np.nan_to_num(np.dot(distribution / float(size), np.log(distribution / float(size)))) * size
-    return entropy / total
+features = {}
+with open("hw3features.txt", "r") as feature_file:
+    index = 0
+    for feature in feature_file.readlines():
+        features[index] = feature.strip()
+        index += 1
+
+def split(data, labels):
+    feature, threshold, entropy = 0, 0, sys.maxint
+#     print "Feature\tThreshold\tEntropy"
+    for curr_feature in xrange(len(data[0])):
+        feature_sort = sorted(zip(data, labels), key=lambda point: point[0][curr_feature])
+        curr_threshold, curr_entropy = best_threshold(feature_sort, curr_feature)
+#         print curr_feature, '\t', curr_threshold, '\t', curr_entropy
+        if curr_entropy < entropy:
+            feature, threshold, entropy = curr_feature, curr_threshold, curr_entropy
+    return feature, threshold
 
 def best_threshold(feature_sort, feature):
     data, labels = zip(*feature_sort)
@@ -74,34 +75,111 @@ def best_threshold(feature_sort, feature):
 
     return threshold, entropy
 
-def split(data, labels):
-    feature, threshold, entropy = 0, 0, sys.maxint
-#     print "Feature\tThreshold\tEntropy"
-    for curr_feature in xrange(len(data[0])):
-        feature_sort = sorted(zip(data, labels), key=lambda point: point[0][curr_feature])
-        curr_threshold, curr_entropy = best_threshold(feature_sort, curr_feature)
-#         print curr_feature, '\t', curr_threshold, '\t', curr_entropy
-        if curr_entropy < entropy:
-            feature, threshold, entropy = curr_feature, curr_threshold, curr_entropy
-    return feature, threshold
+def compute_entropy(distributions):
+    total = float(sum([size[0] for size in distributions]))
+    entropy = 0
+    for size, distribution in distributions:
+        if size > 0:
+            entropy -= np.nan_to_num(np.dot(distribution / float(size), np.log(distribution / float(size)))) * size
+    return entropy / total
 
-def build_tree(data, labels):
-    feature, threshold = split(data, labels)
-    feature_sort = sorted(zip(data, labels), key=lambda point: point[0][feature])
-    left_data, left_labels = zip(*filter(lambda x: x[0][feature] < threshold, feature_sort))
-    right_data, right_labels = zip(*filter(lambda x: x[0][feature] >= threshold, feature_sort))
-    print len(left_data), len(right_data) # TODO: Confirm by printing number of elements < 0.5
-    # TODO output node
-    # TODO recurse on left and right datasets
-    # return node
+class Node:
+    def __init__(self):
+        self.feature = None
+        self.threshold = None
+        self.majority_label = None
+        self.label = None
+        self.left = None
+        self.right = None
 
-    if labels.isPure():
-    	return Node (None, None, None, labels[0])
+class ID3Tree:
+    def __init__(self, data, labels):
+        self.root = self.build_tree(data, labels)
+    
+    def build_tree(self, data, labels):
+        node = Node()
+        distinct_labels = list(set(labels))
+        
+        # Pure node
+        if len(distinct_labels) == 1:
+            node.label = distinct_labels[0]
+            return node
+        
+        # Majority label
+        node.majority_label = Counter(labels).most_common()[0][0]
+        
+        # Recursively split data
+        feature, threshold = split(data, labels)
+        feature_sort = sorted(zip(data, labels), key=lambda point: point[0][feature])
+        left_data, left_labels = zip(*filter(lambda x: x[0][feature] < threshold, feature_sort))
+        right_data, right_labels = zip(*filter(lambda x: x[0][feature] >= threshold, feature_sort))
+        
+        node.feature = feature
+        node.threshold = threshold
+        node.left = self.build_tree(left_data, left_labels)
+        node.right = self.build_tree(right_data, right_labels)
 
-    left = build_tree(left_data, left_labels)
-    right = build_tree(right_data, right_labels)
-    return Node(feature, threshold, labels.getMajority(), None)
+        return node
 
+    def classify(self, root, data_point, prune_node=None):
+        if prune_node and root == prune_node:
+            return root.majority_label
+        if root.left and data_point[root.feature] < root.threshold:
+            return self.classify(root.left, data_point, prune_node)
+        elif root.right and data_point[root.feature] >= root.threshold:
+            return self.classify(root.right, data_point, prune_node)
+        else:
+            return root.label
+    
+    def accuracy(self, data, labels, prune_node=None):
+        correct = 0.0
+        for point, label in zip(data, labels):
+            if self.classify(self.root, point, prune_node) == label:
+                correct += 1
+        return correct / len(data)
+    
+    def prune(self, data, labels):
+        bfs_queue = deque([self.root])
+        while len(bfs_queue) > 0:
+            curr = bfs_queue.popleft()
+            original, pruned = self.accuracy(data, labels), self.accuracy(data, labels, curr)
+            if pruned > original:
+                curr.label = curr.majority_label
+                curr.left, curr.right = None, None
+                return
+            if curr.left:
+                bfs_queue.append(curr.left)
+            if curr.right:
+                bfs_queue.append(curr.right)
 
+    def bfs(self):
+        bfs_queue = deque([self.root])
+        while len(bfs_queue) > 0:
+            curr = bfs_queue.popleft()
+            if curr.left or curr.right:
+                print features[curr.feature], "<", curr.threshold, "majority", curr.majority_label
+            else:
+                print "Prediction", curr.label
+            if curr.left:
+                bfs_queue.append(curr.left)
+            if curr.right:
+                bfs_queue.append(curr.right)
 
-build_tree(train_data, train_labels)
+tree = ID3Tree(train_data, train_labels)
+tree.bfs()
+
+print "Training accuracy =", tree.accuracy(train_data, train_labels)
+print "Test accuracy =", tree.accuracy(test_data, test_labels)
+
+tree.prune(validate_data, validate_labels)
+print "Round 1 of pruning"
+print "Validation accuracy =", tree.accuracy(validate_data, validate_labels)
+print "Test accuracy =", tree.accuracy(test_data, test_labels)
+# tree.bfs()
+
+tree.prune(validate_data, validate_labels)
+print "Round 2 of pruning"
+print "Validation accuracy =", tree.accuracy(validate_data, validate_labels)
+print "Test accuracy =", tree.accuracy(test_data, test_labels)
+
+tree.bfs()
