@@ -10,8 +10,6 @@ with open("hw4train.txt", "r") as train_file:
         train_data.append(np.array(vector[:-1]))
         train_labels.append(int(vector[-1]))
 
-
-#Load test data
 test_data = []
 test_labels = []
 with open("hw4test.txt", "r") as test_file:
@@ -20,89 +18,38 @@ with open("hw4test.txt", "r") as test_file:
         test_data.append(np.array(vector[:-1]))
         test_labels.append(int(vector[-1]))
 
+train_12 = [pair for pair in filter(lambda pair:pair[1] == 1 or pair[1] == 2, zip(train_data,train_labels))]
+train_data12, train_label12 = zip(*train_12)
+train_label12 =[x for x in map(lambda x:-1 if x == 1 else 1,train_label12)]
 
-#Load train data for Q1
-train_data12 = []
-train_label12 = []
+def perceptron(train, label, t):
+    wlist = [0]*len(train[0]) #hyperplane list.
+    for i in range(0,t):
+        for data, label2 in zip(train,label):
+            if label2*np.dot(wlist,data) <= 0:
+                wlist = wlist+label2*data
+    return wlist
 
-for data in train_data
-	vector = [float(i) for i in data.split()]
-	if(train_labels[i] = 1 || train_labels[i] = 2) 
-		train_data12.append(np.array(vector))
-		train_label12.append(int(train_labels[i]))
+def error(data,label,wlist):
+    error = 0
+    for d,l in zip(data,label):
+        if np.dot(wlist,d)*l <= 0:
+            error = error + 1
+    return float(error)/len (label)
 
+wlist = perceptron(train_data12, train_label12,3)
+print(error(train_data12, train_label12,wlist))
 
-#Load test data for Q1
-test_data12 = []
-test_label12 = []
-
-for data in train_data
-	vector = [float(i) for i in data.split()]
-	if(train_labels[i] = 1) 
-		train_data12.append(np.array(vector))
-		train_label12.append(int(-1))
-	if(train_labels[i] = 2)
-		train_data12.append(np.array(vector))
-		train_label12.append(int(1))
-
-#conversion of labels
-#train_label12[test_label12 == 1] = -1
-#train_label12[test_label12 == 2] = 1
-#test_label12[test_label12 == 1] = -1
-#test_label12[test_label12 == 2] = 1
-
-
-def perceptron_train(train, label, t) 
-	wlist = [0]*train.shape[1] #hyperplane list.
-	for i in range(0,t) 
-		for j in range(0,train.shape[0]) 
-			if label[j]*np.dot(w,train[j]) <= 0
-				wlist = wlist+label[j]*train[j]
-	return wlist
-
-def voted_perceptron_train(train,label,t)
-	w =[0]*train.shape[1]
-	c = 1
-	result = []
-	for i in range(0,t) 
-		for j in range(0,train.shape[0]) 
-			if label[j]*np.dot(w,train[j]) <= 0
-				wnew = w +label[j]*train[j]
-				w  = np.stack(w,wnew) 
-				c  = 1
-				result.append([w,c])
-
-			else:
-				c = c + 1
-	return w,c
-
-#NOT FINISHED PSEUDO-CODE yet
-def average_perceptron_train(train,label,t) 
-	w =[0]*train.shape[1]
-	c = 1
-	averageP = [0.0]*train.shape[1]
-
-	for i in range(0,t) 
-		for j in range(0,train.shape[0]) 
-			if label[j]*np.dot(w,train[j]) <= 0
-				value = [c*x for x in w]
-				wnew = w +label[j]*train[j]
-				w  = np.stack(w,wnew) 
-				c  = 1
-				result.append([w,c])
-
-			else:
-				c = c + 1
-	return w,c
-			
-#training and testing
-def test_perceptron(train, wlist) 
-	 if train.ndim > 1:
-        return np.array([test_perceptron(train, wlist) for x in train]).reshape((-1,))
-    return np.sign(np.dot(train, wlist))
-
-#TESTING
-
-wlist = perceptron_train(train_data12, test_label12, 3) 
-label_predict = test_perceptron(train,)
-
+def voted_perceptron_train(train,label,t):
+    w =[0]*len(train[0])
+    c = 1
+    result = []
+    for i in range(0,t):
+        for data, label2 in zip(train,label):
+            if label2*np.dot(w,data) <= 0:
+                result.append([w,c])
+                w = w +label2*data
+                c  = 1
+            else:
+                c = c + 1
+    return result
