@@ -22,6 +22,10 @@ train_12 = [pair for pair in filter(lambda pair:pair[1] == 1 or pair[1] == 2, zi
 train_data12, train_label12 = zip(*train_12)
 train_label12 =[x for x in map(lambda x:-1 if x == 1 else 1,train_label12)]
 
+test_12 = [pair for pair in filter(lambda pair:pair[1] == 1 or pair[1] == 2, zip(test_data,test_labels))]
+test_data12, test_label12 = zip(*test_12)
+test_label12 =[x for x in map(lambda x:-1 if x == 1 else 1,test_label12)]
+
 def perceptron(train, label, t):
     wlist = [0]*len(train[0]) #hyperplane list.
     for i in range(0,t):
@@ -37,11 +41,8 @@ def error(data,label,wlist):
             error = error + 1
     return float(error)/len (label)
 
-wlist = perceptron(train_data12, train_label12,3)
-print(error(train_data12, train_label12,wlist))
-
 def voted_perceptron_train(train,label,t):
-    w =[0]*len(train[0])
+    w =np.array([0]*len(train[0]))
     c = 1
     result = []
     for i in range(0,t):
@@ -53,3 +54,27 @@ def voted_perceptron_train(train,label,t):
             else:
                 c = c + 1
     return result
+
+print("VOTED PERCEPTRON")
+for i in range (1,5):
+    print("Pass",i)
+    weights, counts = zip(*voted_perceptron_train(train_data12,train_label12,i))
+    print(len(weights))
+    print ("Training Error ", error_voted(train_data12, train_label12, weights,counts))
+    print ("Test Error ", error_voted(test_data12, test_label12, weights,counts))
+
+def error_average(data,label,weights,counts):
+    error = 0
+    for d,l in zip(data,label):
+        value = sum([w*c for w,c in zip(weights,counts)])
+        if (np.dot(value,d)) * l <= 0:
+            error += 1
+    return float (error)/ len(label)
+
+print("VOTED AVERAGE")
+for i in range (1,5):
+    print("Pass",i)
+    weights, counts = zip(*voted_perceptron_train(train_data12,train_label12,i))
+    print ("Training Error ", error_average(train_data12, train_label12, weights,counts))
+    print ("Test Error ", error_average(test_data12, test_label12, weights,counts))
+
