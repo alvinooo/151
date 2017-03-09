@@ -53,45 +53,32 @@ def string_weights(strings, mistakes, k, p):
         weights[s] = predict(mistakes, k, s, p)
     return weights
 
-# mistakes_multi_3 = kernel_perceptron(train_data, train_labels, kernel_multi_count, 3)
-# mistakes_multi_4 = kernel_perceptron(train_data, train_labels, kernel_multi_count, 4)
-# mistakes_multi_5 = kernel_perceptron(train_data, train_labels, kernel_multi_count, 5)
-# print error(mistakes_multi_3, train_data, train_labels, kernel_multi_count, 3)
-# print error(mistakes_multi_4, train_data, train_labels, kernel_multi_count, 4)
-# print error(mistakes_multi_5, train_data, train_labels, kernel_multi_count, 5)
-# print error(mistakes_multi_3, test_data, test_labels, kernel_multi_count, 3)
-# print error(mistakes_multi_4, test_data, test_labels, kernel_multi_count, 4)
-# print error(mistakes_multi_5, test_data, test_labels, kernel_multi_count, 5)
+mistakes_multi_3 = kernel_perceptron(train_data, train_labels, kernel_multi_count, 3)
+mistakes_multi_4 = kernel_perceptron(train_data, train_labels, kernel_multi_count, 4)
+mistakes_multi_5 = kernel_perceptron(train_data, train_labels, kernel_multi_count, 5)
+print error(mistakes_multi_3, train_data, train_labels, kernel_multi_count, 3)
+print error(mistakes_multi_4, train_data, train_labels, kernel_multi_count, 4)
+print error(mistakes_multi_5, train_data, train_labels, kernel_multi_count, 5)
+print error(mistakes_multi_3, test_data, test_labels, kernel_multi_count, 3)
+print error(mistakes_multi_4, test_data, test_labels, kernel_multi_count, 4)
+print error(mistakes_multi_5, test_data, test_labels, kernel_multi_count, 5)
 
-# mistakes_single_3 = kernel_perceptron(train_data, train_labels, kernel_single_count, 3)
-# mistakes_single_4 = kernel_perceptron(train_data, train_labels, kernel_single_count, 4)
-# mistakes_single_5 = kernel_perceptron(train_data, train_labels, kernel_single_count, 5)
-# print error(mistakes_single_3, train_data, train_labels, kernel_single_count, 3)
-# print error(mistakes_single_4, train_data, train_labels, kernel_single_count, 4)
-# print error(mistakes_single_5, train_data, train_labels, kernel_single_count, 5)
-# print error(mistakes_single_3, test_data, test_labels, kernel_single_count, 3)
-# print error(mistakes_single_4, test_data, test_labels, kernel_single_count, 4)
-# print error(mistakes_single_5, test_data, test_labels, kernel_single_count, 5)
+mistakes_single_3 = kernel_perceptron(train_data, train_labels, kernel_single_count, 3)
+mistakes_single_4 = kernel_perceptron(train_data, train_labels, kernel_single_count, 4)
+mistakes_single_5 = kernel_perceptron(train_data, train_labels, kernel_single_count, 5)
+print error(mistakes_single_3, train_data, train_labels, kernel_single_count, 3)
+print error(mistakes_single_4, train_data, train_labels, kernel_single_count, 4)
+print error(mistakes_single_5, train_data, train_labels, kernel_single_count, 5)
+print error(mistakes_single_3, test_data, test_labels, kernel_single_count, 3)
+print error(mistakes_single_4, test_data, test_labels, kernel_single_count, 4)
+print error(mistakes_single_5, test_data, test_labels, kernel_single_count, 5)
 
-mistakes_multi_5 = eval(open("mistakes.txt", "r").read())
 mistakes_strings = [pair[0] for pair in mistakes_multi_5]
-
 substrings = set()
 for s in mistakes_strings:
     for i in range(0, len(s) - 4):
         substrings.add(s[i:i+5])
 
-weights = string_weights(substrings[10000:20000], mistakes_multi_5, kernel_multi_count, 5)
-open("positive_weights_10000.txt", "w").write(str(weights))
-
-weights = string_weights(substrings[20000:30000], mistakes_multi_5, kernel_multi_count, 5)
-open("positive_weights_20000.txt", "w").write(str(weights))
-
-weights = string_weights(substrings[30000:40000], mistakes_multi_5, kernel_multi_count, 5)
-open("positive_weights_30000.txt", "w").write(str(weights))
-
-weights = string_weights(substrings[40000:50000], mistakes_multi_5, kernel_multi_count, 5)
-open("positive_weights_40000.txt", "w").write(str(weights))
-
-weights = string_weights(substrings[50000:], mistakes_multi_5, kernel_multi_count, 5)
-open("positive_weights_50000.txt", "w").write(str(weights))
+weights = string_weights(substrings, mistakes_multi_5, kernel_multi_count, 5)
+sorted_weights = sorted([(weights[sub], sub) for sub in weights], reverse=True)
+print sorted_weights[:10]

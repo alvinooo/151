@@ -85,6 +85,7 @@ def compute_entropy(distributions):
 
 class Node:
     def __init__(self):
+        self.data_size = 0
         self.feature = None
         self.threshold = None
         self.majority_label = None
@@ -98,6 +99,7 @@ class ID3Tree:
     
     def build_tree(self, data, labels):
         node = Node()
+        node.data_size = len(labels)
         distinct_labels = list(set(labels))
         
         # Pure node
@@ -157,16 +159,16 @@ class ID3Tree:
         while len(bfs_queue) > 0:
             curr = bfs_queue.popleft()
             if curr.left or curr.right:
-                print features[curr.feature], "<", curr.threshold, "majority", curr.majority_label
+                print "Decision node", curr.data_size, "data points,", features[curr.feature], "<", curr.threshold, ", majority", curr.majority_label
             else:
-                print "Prediction", curr.label
+                print "Prediction node", curr.data_size, "data points, prediction", curr.label
             if curr.left:
                 bfs_queue.append(curr.left)
             if curr.right:
                 bfs_queue.append(curr.right)
 
 tree = ID3Tree(train_data, train_labels)
-tree.bfs()
+# tree.bfs()
 
 print "Training accuracy =", tree.accuracy(train_data, train_labels)
 print "Test accuracy =", tree.accuracy(test_data, test_labels)
